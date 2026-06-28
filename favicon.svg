@@ -1,10 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
   <defs>
-    <!-- 背景漸層 (與 Master Icon 相呼應) -->
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#4f46e5" />
-      <stop offset="100%" stop-color="#0f172a" />
-    </linearGradient>
     <!-- 水的漸層 -->
     <linearGradient id="waterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
       <stop offset="0%" stop-color="#38bdf8" />
@@ -19,31 +14,28 @@
     </linearGradient>
   </defs>
 
-  <!-- 背景圓角矩形 -->
-  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
-
   <!-- 杯子與水組合 -->
   <g transform="translate(0, 10)">
-    <!-- 水杯背部陰影 -->
-    <path d="M160 140 L180 380 C182 400, 198 410, 218 410 L294 410 C314 410, 330 400, 332 380 L352 140 Z" fill="#000000" opacity="0.2" filter="blur(6px)" />
+    <!-- 水杯背部陰影 (更輕，因為背景透明) -->
+    <path d="M160 140 L180 380 C182 400, 198 410, 218 410 L294 410 C314 410, 330 400, 332 380 L352 140 Z" fill="#000000" opacity="0.08" filter="blur(4px)" />
 
     <!-- 水 (在杯子內部，所以形狀稍微內縮) -->
     <!-- 水面帶有自然的波浪 -->
     <path d="M172 240 Q 210 228, 256 240 T 340 240 L 328 376 C 327 388, 316 398, 302 398 L 210 398 C 196 398, 185 388, 184 376 Z" fill="url(#waterGrad)" />
     
     <!-- 氣泡點綴 -->
-    <circle cx="210" cy="300" r="10" fill="#ffffff" opacity="0.3" />
-    <circle cx="290" cy="270" r="6" fill="#ffffff" opacity="0.4" />
-    <circle cx="240" cy="340" r="8" fill="#ffffff" opacity="0.25" />
-    <circle cx="275" cy="320" r="5" fill="#ffffff" opacity="0.35" />
+    <circle cx="210" cy="300" r="10" fill="#ffffff" opacity="0.4" />
+    <circle cx="290" cy="270" r="6" fill="#ffffff" opacity="0.5" />
+    <circle cx="240" cy="340" r="8" fill="#ffffff" opacity="0.3" />
+    <circle cx="275" cy="320" r="5" fill="#ffffff" opacity="0.45" />
 
-    <!-- 水杯本體 (外框) -->
-    <path d="M160 140 L180 380 C182 402, 198 412, 220 412 L292 412 C314 412, 330 402, 332 380 L352 140 Z" fill="url(#glassGrad)" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.85" />
+    <!-- 水杯本體 (外框改為深色，以確保在淺色背景上也清晰可見) -->
+    <path d="M160 140 L180 380 C182 402, 198 412, 220 412 L292 412 C314 412, 330 402, 332 380 L352 140 Z" fill="url(#glassGrad)" stroke="#0f172a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.9" />
     
-    <!-- 杯口橢圓邊緣 (加強立體感) -->
-    <ellipse cx="256" cy="140" rx="96" ry="16" fill="none" stroke="#ffffff" stroke-width="8" opacity="0.9" />
+    <!-- 杯口橢圓邊緣 (改為深色) -->
+    <ellipse cx="256" cy="140" rx="96" ry="16" fill="none" stroke="#0f172a" stroke-width="8" opacity="0.9" />
 
-    <!-- 杯身左側高光 -->
-    <path d="M185 170 L198 330" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.4" />
+    <!-- 杯身左側高光 (保持白色，加強玻璃感) -->
+    <path d="M185 170 L198 330" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.5" />
   </g>
 </svg>
