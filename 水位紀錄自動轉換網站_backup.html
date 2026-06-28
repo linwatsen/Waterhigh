@@ -4,14 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🌊 水位自動記錄整理工具</title>
-    <!-- 圖示與 App PWA 設定 -->
-    <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg">
-    <link rel="icon" type="image/x-icon" href="./favicon.ico">
-    <link rel="manifest" href="./site.webmanifest">
-    <meta name="theme-color" content="#0f172a">
     <!-- 引入 premium 的 Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -689,23 +681,9 @@
                 
                 if (companyResult.missingItems.length > 0) {
                     warningList.innerHTML = '';
-                    
-                    // 檢查是否有單筆數據警告，有的話標題可以更醒目
-                    const hasSingle = companyResult.missingItems.some(item => item.includes('只有單筆數據'));
-                    const titleSpan = warningBox.querySelector('.alert-title span');
-                    if (hasSingle) {
-                        titleSpan.innerHTML = '⚠️ 發現部分項目填寫不完整（已在結果中標註 ⚠️ 符號或以填充字替代）：';
-                    } else {
-                        titleSpan.innerHTML = '⚠️ 發現部分項目在本次外出紀錄中未填寫（將以填充字替代）：';
-                    }
-                    
                     companyResult.missingItems.forEach(item => {
                         const li = document.createElement('li');
                         li.textContent = item;
-                        if (item.includes('只有單筆數據')) {
-                            li.style.color = 'var(--warning-color)';
-                            li.style.fontWeight = '500';
-                        }
                         warningList.appendChild(li);
                     });
                     warningBox.style.display = 'block';
@@ -733,22 +711,6 @@
             return filtered[filtered.length - 1];
         }
 
-        // 判斷該值是否為單筆數據
-        function isSingleValueData(valueStr) {
-            if (!valueStr) return false;
-            // 如果完全不包含數字，通常是狀態文字 (如 "壓", "滿", "無資料")，排除單筆警告
-            const hasDigit = /\d/.test(valueStr);
-            if (!hasDigit) return false;
-            
-            // 檢查是否含有斜線 "/"
-            const hasSlash = valueStr.includes('/');
-            if (!hasSlash) return true;
-            
-            // 如果有斜線，但分割後的有效數據少於兩筆 (例如 "2.835/" 或 "/2.835")
-            const parts = valueStr.split('/').map(p => p.trim()).filter(p => p.length > 0);
-            return parts.length < 2;
-        }
-
         // 解析當次外出抄寫數據
         function parseOutingRecord(text) {
             // 清理可能包含的零寬字元
@@ -757,7 +719,6 @@
             const lines = cleanText.split(/\r\n|\r|\n/);
             const instruments = {}; // 全域儀器: { 'ow1001015': '2.074', ... }
             const stations = {};     // 細項站點: { '1005': { '03': '2.178', '32': '3.692', ... } }
-            const singleKeys = new Set(); // 記錄只有單筆數據的鍵 (儀器為 instId，細項為 currentStation + '_' + itemId)
             
             let currentStation = null;
             
@@ -788,11 +749,6 @@
                     if (currentStation) {
                         stations[currentStation][instId] = latestValue;
                     }
-                    
-                    // 偵測是否為單筆數據
-                    if (isSingleValueData(valueStr)) {
-                        singleKeys.add(instId);
-                    }
                     continue;
                 }
                 
@@ -806,17 +762,12 @@
                         const latestValue = getLatestValue(valueStr);
                         
                         stations[currentStation][itemId] = latestValue;
-                        
-                        // 偵測是否為單筆數據
-                        if (isSingleValueData(valueStr)) {
-                            singleKeys.add(currentStation + '_' + itemId);
-                        }
                         continue;
                     }
                 }
             }
             
-            return { instruments, stations, singleKeys };
+            return { instruments, stations };
         }
 
         // 依據公司樣版生成公司記錄，填寫最新數值
@@ -844,18 +795,12 @@
                     const instId = instrumentMatch[1];
                     const key = instId.toLowerCase();
                     const value = data.instruments[key];
-                    const isSingle = data.singleKeys.has(key);
                     
                     if (value !== undefined && value !== "") {
-                        if (isSingle) {
-                            newLine = `${instId}-${value} ⚠️`;
-                            missingItems.push(`儀器代碼: ${instId} (只有單筆數據)`);
-                        } else {
-                            newLine = `${instId}-${value}`;
-                        }
+                        newLine = `${instId}-${value}`;
                     } else {
                         newLine = `${instId}-${defaultValue}`;
-                        missingItems.push(`儀器代碼: ${instId} (無資料)`);
+                        missingItems.push(`儀器代碼: ${instId}`);
                     }
                     outputLines.push(newLine);
                     continue;
@@ -867,18 +812,12 @@
                     const indent = itemMatch[1];
                     const itemId = itemMatch[2];
                     const value = data.stations[currentStation] ? data.stations[currentStation][itemId] : undefined;
-                    const isSingle = data.singleKeys.has(currentStation + '_' + itemId);
                     
                     if (value !== undefined && value !== "") {
-                        if (isSingle) {
-                            newLine = `${indent}${itemId}-${value} ⚠️`;
-                            missingItems.push(`站點 ${currentStation} 的細項: ${itemId} (只有單筆數據)`);
-                        } else {
-                            newLine = `${indent}${itemId}-${value}`;
-                        }
+                        newLine = `${indent}${itemId}-${value}`;
                     } else {
                         newLine = `${indent}${itemId}-${defaultValue}`;
-                        missingItems.push(`站點 ${currentStation} 的細項: ${itemId} (無資料)`);
+                        missingItems.push(`站點 ${currentStation} 的細項: ${itemId}`);
                     }
                     outputLines.push(newLine);
                     continue;
@@ -919,15 +858,13 @@
                     const separator = instrumentMatch[3];
                     const valueStr = instrumentMatch[4];
                     const latestValue = getLatestValue(valueStr);
-                    const isSingle = isSingleValueData(valueStr.trim());
                     const formattedValue = latestValue !== "" ? latestValue + "/" : "";
                     
                     // 保留原始的分隔符 (冒號或減號)
                     const isColon = (separator === ':' || separator === '：');
                     const outSep = isColon ? ': ' : '- ';
-                    const suffix = isSingle ? " ⚠️" : "";
                     
-                    outputLines.push(`${indent}${instId}${outSep}${formattedValue}${suffix}`);
+                    outputLines.push(`${indent}${instId}${outSep}${formattedValue}`);
                     continue;
                 }
                 
@@ -940,15 +877,13 @@
                     const separator = itemMatch[3];
                     const valueStr = itemMatch[4];
                     const latestValue = getLatestValue(valueStr);
-                    const isSingle = isSingleValueData(valueStr.trim());
                     const formattedValue = latestValue !== "" ? latestValue + "/" : "";
                     
                     // 保留原始的分隔符 (冒號或減號)
                     const isColon = (separator === ':' || separator === '：');
                     const outSep = isColon ? ': ' : '- ';
-                    const suffix = isSingle ? " ⚠️" : "";
                     
-                    outputLines.push(`${indent}${itemId}${outSep}${formattedValue}${suffix}`);
+                    outputLines.push(`${indent}${itemId}${outSep}${formattedValue}`);
                     continue;
                 }
                 
